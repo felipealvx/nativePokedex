@@ -1,8 +1,32 @@
-import { Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { CaretRight, Fish, Gear, MagnifyingGlass } from "phosphor-react-native";
 import { Link } from "expo-router";
+import { useEffect, useState } from "react";
+import { fetchPokemons } from "./services/api";
+import { PokemonListItem } from "./types/pokemon";
 
 export default function Index() {
+  const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
+
+  useEffect(() => {
+    const loadPokemons = async () => {
+      const data = await fetchPokemons();
+      const fetchPokemonsData: PokemonListItem[] = await Promise.all(
+        data.map(async (item: {name: string; url: string}) => {
+          const response = await fetch(item.url);
+          const details = await response.json();
+
+          return {
+            name: item.name,
+            image: details.sprites.other.home.front_default,
+          };
+        })
+      );
+      setPokemons(fetchPokemonsData);
+    };
+    loadPokemons();
+  }, [])
+
   return (
     <View style={ styles.container }>
       <View style={styles.header}>
@@ -26,24 +50,32 @@ export default function Index() {
         <Text style={styles.contentText}>
           Todos os Pokemons
         </Text>
-        <View style={styles.card}>
-          <View style={styles.cardInfo}>
-            <Image source={require("../assets/bulbasaur.png")}/>
-            <View>
-              <Text style={{color: 'gray'}}>#001</Text>
-              <Text style={{fontWeight: 'bold'}}>Bulbasaur</Text>
+
+        <FlatList 
+          data={pokemons}
+          keyExtractor={(item) => item.name}
+          renderItem={({item, index}) => (
+            <View style={styles.card}>
+              <View style={styles.cardInfo}>
+                <Image source={{uri: item.image}}
+                style={{width: 60, height: 60}} />
+                <View>
+                  <Text style={{color: 'gray'}}>#{index + 1}</Text>
+                  <Text style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{item.name}</Text>
+                </View>
+              </View>
+              <Link
+                href={{
+                  pathname: "./pokemon/[id]",
+                  params: {
+                    id: "name",
+                  },
+                }}> 
+                <CaretRight size={32} />
+              </Link>
             </View>
-          </View>
-          <Link
-            href={{
-              pathname: "./pokemon/[id]",
-              params: {
-                id: "name",
-              },
-            }}> 
-            <CaretRight size={32} />
-          </Link>
-        </View>
+          )}
+        />
       </View>
 
       <View style={styles.footer}>
@@ -118,12 +150,12 @@ export const styles = StyleSheet.create ({
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: '#f1f1f1',
     alignItems: 'center',
     padding: 15,
-    elevation: 5,
     justifyContent: 'space-between',
     borderRadius: 4,
+    marginBottom: 10,
   },
   cardInfo: {
     flexDirection: 'row',
