@@ -1,12 +1,25 @@
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Dimensions, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { CaretRight, Fish, Gear, MagnifyingGlass } from "phosphor-react-native";
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { fetchPokemons } from "./services/api";
 import { PokemonListItem } from "./types/pokemon";
+import Modal from "react-native-modal";
+import Pokemon from "./pokemon/[id]";
+
+const {height} = Dimensions.get('window');
 
 export default function Index() {
   const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedPokemon, setSelectedPokemon] = useState<string | null>(null)
+
+  const toggleModal = (pokemonName?: string) => {
+    if (pokemonName){
+      setSelectedPokemon(pokemonName);
+    }
+    setModalVisible(!isModalVisible)
+  };
 
   useEffect(() => {
     const loadPokemons = async () => {
@@ -55,7 +68,7 @@ export default function Index() {
           data={pokemons}
           keyExtractor={(item) => item.name}
           renderItem={({item, index}) => (
-            <View style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={() => toggleModal(item.name)}>
               <View style={styles.cardInfo}>
                 <Image source={{uri: item.image}}
                 style={{width: 60, height: 60}} />
@@ -64,16 +77,16 @@ export default function Index() {
                   <Text style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{item.name}</Text>
                 </View>
               </View>
-              <Link
+              {/* <Link
                 href={{
                   pathname: "./pokemon/[id]",
                   params: {
                     id: "name",
                   },
                 }}> 
-                <CaretRight size={32} />
-              </Link>
-            </View>
+              </Link> */}
+              <CaretRight size={25} color="gray"/>
+            </TouchableOpacity>
           )}
         />
       </View>
@@ -84,6 +97,17 @@ export default function Index() {
           <Fish size={32} color="#fff"/>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        isVisible={isModalVisible}
+        onBackdropPress={() => toggleModal()}
+        swipeDirection={"down"}
+        onSwipeComplete={() => toggleModal()}
+        style={styles.modal}> 
+        <View style={styles.modalContent}>
+          <Pokemon name={selectedPokemon}/>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -167,5 +191,16 @@ export const styles = StyleSheet.create ({
     fontSize: 20,
     fontWeight: 'bold',
     paddingBottom: 20,
-  }
+  },
+  modal: {
+    justifyContent: "flex-end",
+    margin: 0,
+  },
+  modalContent: {
+    height: height*0.8,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
 });
