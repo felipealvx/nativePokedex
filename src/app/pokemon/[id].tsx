@@ -6,15 +6,52 @@ interface Props {
     name?: string | null;
 }
 
+interface Evolution {
+    name: string;
+    image: string;
+}
+
 export default function Pokemon({name}: Props) {
     const [pokemon, setPokemon] = useState<any>(null);
+    const [evolutions, setEvolutions] = useState<Evolution[]>([])
+
     useEffect(() => {
         const loadPokemon = async () => {
             const response = await api.get(`/pokemon/${name}`);
             setPokemon(response.data);
+            const speciesURL = response.data.species.url;
+
+            const speciesResponse = await api.get(speciesURL);
+            const evolutionsURL = speciesResponse.data.evolution_chain.url;
+
+            const evolutionResponse = await api.get(evolutionsURL);
+
+            const evolutions = extractEvolution(evolutionResponse.data.chain);
+
+            const evolutionImages = await Promise.all (
+                evolutions.map(async (evoName) => {
+                    const response = await api.get(`/pokemon/${evoName}`)
+                    return {
+                        name: evoName,
+                        image: response.data.sprites.other.home.front_default,
+                    };
+                })
+            )
+            setEvolutions(evolutionImages);
         };
         loadPokemon();
     }, [name]);
+
+    const extractEvolution= (chain: any): string[] => {
+        const evolutions: string[] = [];
+        let current = chain;
+        while (current) {
+            evolutions.push(current.species.name);
+            current = current.evolves_to[0];
+        }
+
+        return evolutions;
+    }
 
     if (!pokemon) {
         return <Text>OOOPS! Carregando informações do pokemon.</Text>
@@ -54,24 +91,14 @@ export default function Pokemon({name}: Props) {
             <Text style={styles.evolutionsTitle}>Evoluções</Text>
 
             <View style={styles.footer}>
-                <View style={styles.footerCardContainer}>
-                    <View style={styles.footerCard}>
-                        <Image style={styles.img} source={require("../../assets/bulbasaur.png")}/>
+                {evolutions.map((evo, index) => (
+                    <View key={index} style={styles.footerCardContainer}>
+                        <View style={styles.footerCard}>
+                            <Image style={styles.img} source={{uri: evo.image}}/>
+                        </View>
+                        <Text style={styles.footerTitle}>{evo.name}</Text>
                     </View>
-                    <Text>Bulbasaur</Text>
-                </View>
-                <View style={styles.footerCardContainer}>
-                    <View style={styles.footerCard}>
-                        <Image style={styles.img} source={require("../../assets/bulbasaur.png")}/>
-                    </View>
-                    <Text>Bulbasaur</Text>
-                </View>
-                <View style={styles.footerCardContainer}>
-                    <View style={styles.footerCard}>
-                        <Image style={styles.img} source={require("../../assets/bulbasaur.png")}/>
-                    </View>
-                    <Text>Bulbasaur</Text>
-                </View>
+                ))}
             </View>
         </View>
     );
@@ -164,5 +191,8 @@ const styles = StyleSheet.create ({
         borderRadius: 2.5,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    footerTitle: {
+        textTransform: 'capitalize'
     },
 });

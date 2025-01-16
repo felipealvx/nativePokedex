@@ -13,6 +13,8 @@ export default function Index() {
   const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedPokemon, setSelectedPokemon] = useState<string | null>(null)
+  const [filteredPokemons, setFilteredPokemons] = useState<PokemonListItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleModal = (pokemonName?: string) => {
     if (pokemonName){
@@ -20,6 +22,17 @@ export default function Index() {
     }
     setModalVisible(!isModalVisible)
   };
+
+  const randomPokemon = () => {
+    if (pokemons.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random () * pokemons.length);
+
+    const selected = pokemons[randomIndex];
+    setSelectedPokemon(selected.name);
+
+    setModalVisible(true);
+  }
 
   useEffect(() => {
     const loadPokemons = async () => {
@@ -40,11 +53,18 @@ export default function Index() {
     loadPokemons();
   }, [])
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+
+    const filtered = pokemons.filter (pokemon => pokemon.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredPokemons(filtered)
+  }
+
   return (
     <View style={ styles.container }>
       <View style={styles.header}>
         <Text style={styles.logo}>Pokedex</Text>
-        <Gear size={32} color="#fff"/>
       </View>
 
       <Text style={styles.info}>
@@ -56,8 +76,11 @@ export default function Index() {
         <TextInput 
         placeholder="Pesquise seu Pokemon!" 
         placeholderTextColor="#fff"
+        value={searchQuery}
+        onChangeText={handleSearch}
         style={styles.input} />
       </View>
+
 
       <View style={styles.content}>
         <Text style={styles.contentText}>
@@ -65,7 +88,7 @@ export default function Index() {
         </Text>
 
         <FlatList 
-          data={pokemons}
+          data={pokemons && filteredPokemons}
           keyExtractor={(item) => item.name}
           renderItem={({item, index}) => (
             <TouchableOpacity style={styles.card} onPress={() => toggleModal(item.name)}>
@@ -92,7 +115,7 @@ export default function Index() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.buttonFooter}>
+        <TouchableOpacity style={styles.buttonFooter} onPress={randomPokemon}>
           <Text style={styles.buttonText}>Conhecer um Pokemon</Text>
           <Fish size={32} color="#fff"/>
         </TouchableOpacity>
