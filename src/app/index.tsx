@@ -87,31 +87,40 @@ export default function Index() {
           Todos os Pokemons
         </Text>
 
-        <FlatList 
-          data={pokemons && filteredPokemons}
-          keyExtractor={(item) => item.name}
-          renderItem={({item, index}) => (
-            <TouchableOpacity style={styles.card} onPress={() => toggleModal(item.name)}>
-              <View style={styles.cardInfo}>
-                <Image source={{uri: item.image}}
-                style={{width: 60, height: 60}} />
-                <View>
-                  <Text style={{color: 'gray'}}>#{index + 1}</Text>
-                  <Text style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{item.name}</Text>
+        { filteredPokemons.length > 0 ? (
+          <FlatList 
+            data={pokemons && filteredPokemons}
+            keyExtractor={(item) => item.name}
+            renderItem={({item, index}) => (
+              <TouchableOpacity style={styles.card} onPress={() => toggleModal(item.name)}>
+                <View style={styles.cardInfo}>
+                  <Image source={{uri: item.image}}
+                  style={{width: 60, height: 60}} />
+                  <View>
+                    <Text style={{color: 'gray'}}>#{index + 1}</Text>
+                    <Text style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{item.name}</Text>
+                  </View>
                 </View>
-              </View>
-              {/* <Link
-                href={{
-                  pathname: "./pokemon/[id]",
-                  params: {
-                    id: "name",
-                  },
-                }}> 
-              </Link> */}
-              <CaretRight size={25} color="gray"/>
-            </TouchableOpacity>
-          )}
-        />
+                {/* <Link
+                  href={{
+                    pathname: "./pokemon/[id]",
+                    params: {
+                      id: "name",
+                    },
+                  }}> 
+                </Link> */}
+                <CaretRight size={25} color="gray"/>
+              </TouchableOpacity>
+            )}
+          />
+        ) : (
+          <View style={styles.imgContainer}>
+            <Image 
+            style={styles.pikachuImage}
+            source={require("../assets/pikachu.png")}/>
+            <Text>QUE PENA! Pokemon não encontrado.</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -138,7 +147,7 @@ export default function Index() {
 export const styles = StyleSheet.create ({
   container: {
     flex: 1,
-    backgroundColor: '#f7776a',
+    backgroundColor: '#252422',
   },
   header: {
     flexDirection: 'row',
@@ -156,14 +165,14 @@ export const styles = StyleSheet.create ({
     padding: 20,
   },
   inputContainer:{
-    backgroundColor: "#f98e80",
+    backgroundColor: "#403D39",
     marginHorizontal: 20,
     borderRadius: 4,
     flexDirection: 'row',
     padding: 10,
     gap: 15,
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: 20,
   },
   input: {
     flex: 1,
@@ -184,7 +193,7 @@ export const styles = StyleSheet.create ({
   },
   buttonFooter: {
     width: '100%',
-    backgroundColor: '#f7776a',
+    backgroundColor: '#403D39',
     padding: 14,
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -225,5 +234,14 @@ export const styles = StyleSheet.create ({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+  },
+  imgContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  pikachuImage: {
+    width: 200,
+    height: 200,
   },
 });
